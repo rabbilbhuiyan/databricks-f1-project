@@ -1,4 +1,4 @@
-# Databricks formula-1 race data analysis
+# A complete end-to-end data engineering project using Azure Databricks
 ## Problem Statement
 To design and orchestrate a Data Pipeline using Databricks and Azure to perform analysis and visualization on Formula 1 race results.
 
@@ -57,14 +57,14 @@ The data from Ergest Developer API is imported into raw ADLS container on Azure 
 - Ability to roll back to a previous version.
 
 ## Project Structure
-### Bronze
+### Bronze Layer
 1. data - contains sample raw data from ergast api.
 2. set-up - notebooks to mount ADLS storages (raw, ingested, presentaton) in databricks.
-### Silver
+### Silver Layer
 3. ingestion - contains notebooks to ingest all the data files from raw layer to ingested layer. Handles the incremental data for files results, pitstopes, laptimes and qualifying.
 4. trans - contains notebooks to transform the data from ingested layer to presentation layer. Notebook perfroms transformations to setup for analysis.
 5. raw - contains SQL file to create ingested tables using Spark SQL.
-### Gold
+### Gold Layer
 6. functions - includes notebooks containing helper functions used in transformations.
 7. analysis - contains SQL files for finding the dominant drivers and teams and to prepare the results for visualization.
 8. utils - contains SQL file to drop all databases for incremental load.

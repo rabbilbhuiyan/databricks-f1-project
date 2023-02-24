@@ -1,4 +1,3 @@
-# Databricks notebook source
 # MAGIC %md
 # MAGIC ### Ingest constructors.json file
 
@@ -25,59 +24,45 @@ v_file_date = dbutils.widgets.get("p_file_date")
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader
 
-# COMMAND ----------
-
+# construct DDL schema
 constructors_schema = "constructorId INT, constructorRef STRING, name STRING, nationality STRING, url STRING"
-
-# COMMAND ----------
-
+# reading data
 constructor_df = spark.read \
 .schema(constructors_schema) \
 .json(f"{raw_folder_path}/{v_file_date}/constructors.json")
 
-# COMMAND ----------
+# displaying data
+display(constructor_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Drop unwanted columns from the dataframe
 
-# COMMAND ----------
-
 from pyspark.sql.functions import col
 
-# COMMAND ----------
-
 constructor_dropped_df = constructor_df.drop(col('url'))
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Rename columns and add ingestion date
 
-# COMMAND ----------
-
 from pyspark.sql.functions import lit
-
-# COMMAND ----------
 
 constructor_renamed_df = constructor_dropped_df.withColumnRenamed("constructorId", "constructor_id") \
                                              .withColumnRenamed("constructorRef", "constructor_ref") \
                                              .withColumn("data_source", lit(v_data_source)) \
                                              .withColumn("file_date", lit(v_file_date))
 
-# COMMAND ----------
-
+# adding ingestion date using the user defined function
 constructor_final_df = add_ingestion_date(constructor_renamed_df)
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 4 Write output to parquet file
+constructor_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/constructors")
 
-# COMMAND ----------
+#constructor_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.constructors")
 
-constructor_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.constructors")
-
-# COMMAND ----------
+# Check the saving of output
+# %fs
+# ls /mnt/formula1dl/processed/constructors
 
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.constructors;

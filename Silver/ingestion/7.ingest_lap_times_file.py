@@ -20,17 +20,14 @@ v_file_date = dbutils.widgets.get("p_file_date")
 
 # MAGIC %run "../includes/common_functions"
 
-# COMMAND ----------
+
 
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the CSV file using the spark dataframe reader API
 
-# COMMAND ----------
-
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType
 
-# COMMAND ----------
-
+# specify schema
 lap_times_schema = StructType(fields=[StructField("raceId", IntegerType(), False),
                                       StructField("driverId", IntegerType(), True),
                                       StructField("lap", IntegerType(), True),
@@ -39,28 +36,22 @@ lap_times_schema = StructType(fields=[StructField("raceId", IntegerType(), False
                                       StructField("milliseconds", IntegerType(), True)
                                      ])
 
-# COMMAND ----------
-
+# reading the data into dataframe
 lap_times_df = spark.read \
 .schema(lap_times_schema) \
 .csv(f"{raw_folder_path}/{v_file_date}/lap_times")
 
-# COMMAND ----------
+# displaying the data
+display(lap_times_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
 # MAGIC 1. Rename driverId and raceId
 # MAGIC 1. Add ingestion_date with current timestamp
 
-# COMMAND ----------
-
 lap_times_with_ingestion_date_df = add_ingestion_date(lap_times_df)
 
-# COMMAND ----------
-
 from pyspark.sql.functions import lit
-
-# COMMAND ----------
 
 final_df = lap_times_with_ingestion_date_df.withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
@@ -68,12 +59,14 @@ final_df = lap_times_with_ingestion_date_df.withColumnRenamed("driverId", "drive
 .withColumn("data_source", lit(v_data_source)) \
 .withColumn("file_date", lit(v_file_date))
 
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Write to output to processed container in parquet format
+final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/lap_times")
 
-# COMMAND ----------
+# check the output is writen properly
+display(spark.read.parquet("/mnt/formula1dl/processed/lap_times"))
+
 
 #overwrite_partition(final_df, 'f1_processed', 'lap_times', 'race_id')
 

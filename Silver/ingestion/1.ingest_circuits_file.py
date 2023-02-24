@@ -24,12 +24,10 @@ v_file_date = dbutils.widgets.get("p_file_date")
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the CSV file using the spark dataframe reader
 
-# COMMAND ----------
-
+# import data types
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DoubleType
 
-# COMMAND ----------
-
+# specify schema
 circuits_schema = StructType(fields=[StructField("circuitId", IntegerType(), False),
                                      StructField("circuitRef", StringType(), True),
                                      StructField("name", StringType(), True),
@@ -41,37 +39,38 @@ circuits_schema = StructType(fields=[StructField("circuitId", IntegerType(), Fal
                                      StructField("url", StringType(), True)
 ])
 
-# COMMAND ----------
-
+# reading data using spark
 circuits_df = spark.read \
 .option("header", True) \
 .schema(circuits_schema) \
 .csv(f"{raw_folder_path}/{v_file_date}/circuits.csv")
 
-# COMMAND ----------
+# displaying dataframe
+display(circuits_df)
+
+# printing schema
+circuits_df.printSchema()
+
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Select only the required columns
 
-# COMMAND ----------
-
+# importing libraries
 from pyspark.sql.functions import col
 
-# COMMAND ----------
-
+# dataframe with selected columns
 circuits_selected_df = circuits_df.select(col("circuitId"), col("circuitRef"), col("name"), col("location"), col("country"), col("lat"), col("lng"), col("alt"))
 
-# COMMAND ----------
+# displaying df
+display(circuits_selected_df)
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Rename the columns as required
 
-# COMMAND ----------
-
+# importing libraries
 from pyspark.sql.functions import lit
 
-# COMMAND ----------
-
+# dataframe with renaming
 circuits_renamed_df = circuits_selected_df.withColumnRenamed("circuitId", "circuit_id") \
 .withColumnRenamed("circuitRef", "circuit_ref") \
 .withColumnRenamed("lat", "latitude") \
@@ -80,23 +79,33 @@ circuits_renamed_df = circuits_selected_df.withColumnRenamed("circuitId", "circu
 .withColumn("data_source", lit(v_data_source)) \
 .withColumn("file_date", lit(v_file_date))
 
-# COMMAND ----------
+# displaying df
+display(circuits_renamed_df)
 
 # MAGIC %md 
 # MAGIC ##### Step 4 - Add ingestion date to the dataframe
 
-# COMMAND ----------
-
+# calling the function 'add_ingestion_date' (in functions folder)
 circuits_final_df = add_ingestion_date(circuits_renamed_df)
 
-# COMMAND ----------
+# displaying the df
+display(circuits_final_df)
 
 # MAGIC %md
-# MAGIC ##### Step 5 - Write data to datalake as parquet
+# MAGIC ##### Step 5 - Write data to datalake as parquet file
 
-# COMMAND ----------
+# wirte data using DataFrameWriter api
+circuits_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/circuits")
 
-circuits_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.circuits")
+# circuits_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.circuits")
+
+# check the data is writen by listing the file system
+# %fs
+# ls /mnt/formula1dl/processed/circuits
+
+# validation of saved data by reading the data 
+df=spark.read.parquet("/mnt/formula1dl/processed/circuits")
+display(df)
 
 # COMMAND ----------
 

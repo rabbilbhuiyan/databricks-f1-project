@@ -1,5 +1,4 @@
-# Databricks notebook source
-# MAGIC %md
+
 # MAGIC ### Ingest circuits.csv file
 
 # COMMAND ----------

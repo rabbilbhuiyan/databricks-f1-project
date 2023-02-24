@@ -1,4 +1,3 @@
-# Databricks notebook source
 # MAGIC %md
 # MAGIC ### Ingest drivers.json file
 
@@ -25,19 +24,15 @@ v_file_date = dbutils.widgets.get("p_file_date")
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader API
 
-# COMMAND ----------
-
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DateType
 
-# COMMAND ----------
-
+# define schema for inner json objects
 name_schema = StructType(fields=[StructField("forename", StringType(), True),
                                  StructField("surname", StringType(), True)
   
 ])
 
-# COMMAND ----------
-
+# define schema for outer json objects
 drivers_schema = StructType(fields=[StructField("driverId", IntegerType(), False),
                                     StructField("driverRef", StringType(), True),
                                     StructField("number", IntegerType(), True),
@@ -48,30 +43,25 @@ drivers_schema = StructType(fields=[StructField("driverId", IntegerType(), False
                                     StructField("url", StringType(), True)  
 ])
 
-# COMMAND ----------
-
+# reading the data into dataframe
 drivers_df = spark.read \
 .schema(drivers_schema) \
 .json(f"{raw_folder_path}/{v_file_date}/drivers.json")
 
-# COMMAND ----------
+# displaying the dataframe
+display(drivers_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
-# MAGIC 1. driverId renamed to driver_id  
-# MAGIC 1. driverRef renamed to driver_ref  
-# MAGIC 1. ingestion date added
-# MAGIC 1. name added with concatenation of forename and surname
-
-# COMMAND ----------
+# driverId renamed to driver_id  
+# driverRef renamed to driver_ref  
+# ingestion date added
+# name added with concatenation of forename and surname
 
 from pyspark.sql.functions import col, concat, lit
 
-# COMMAND ----------
-
+# adding ingestion date using user defined function
 drivers_with_ingestion_date_df = add_ingestion_date(drivers_df)
-
-# COMMAND ----------
 
 drivers_with_columns_df = drivers_with_ingestion_date_df.withColumnRenamed("driverId", "driver_id") \
                                     .withColumnRenamed("driverRef", "driver_ref") \
@@ -79,26 +69,17 @@ drivers_with_columns_df = drivers_with_ingestion_date_df.withColumnRenamed("driv
                                     .withColumn("data_source", lit(v_data_source)) \
                                     .withColumn("file_date", lit(v_file_date))
 
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Drop the unwanted columns
-# MAGIC 1. name.forename
-# MAGIC 1. name.surname
-# MAGIC 1. url
-
-# COMMAND ----------
 
 drivers_final_df = drivers_with_columns_df.drop(col("url"))
 
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ##### Step 4 - Write to output to processed container in parquet format
+drivers_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/drivers")
 
-# COMMAND ----------
-
-drivers_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.drivers")
+#drivers_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.drivers")
 
 # COMMAND ----------
 

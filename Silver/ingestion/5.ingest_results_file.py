@@ -25,12 +25,9 @@ v_file_date = dbutils.widgets.get("p_file_date")
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader API
 
-# COMMAND ----------
-
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, FloatType
 
-# COMMAND ----------
-
+# specifiy the schema
 results_schema = StructType(fields=[StructField("resultId", IntegerType(), False),
                                     StructField("raceId", IntegerType(), True),
                                     StructField("driverId", IntegerType(), True),
@@ -50,22 +47,16 @@ results_schema = StructType(fields=[StructField("resultId", IntegerType(), False
                                     StructField("fastestLapSpeed", FloatType(), True),
                                     StructField("statusId", StringType(), True)])
 
-# COMMAND ----------
-
+# reading the data into dataframe
 results_df = spark.read \
 .schema(results_schema) \
 .json(f"{raw_folder_path}/{v_file_date}/results.json")
 
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
 
-# COMMAND ----------
-
 from pyspark.sql.functions import lit
-
-# COMMAND ----------
 
 results_with_columns_df = results_df.withColumnRenamed("resultId", "result_id") \
                                     .withColumnRenamed("raceId", "race_id") \
@@ -79,38 +70,28 @@ results_with_columns_df = results_df.withColumnRenamed("resultId", "result_id") 
                                     .withColumn("data_source", lit(v_data_source)) \
                                     .withColumn("file_date", lit(v_file_date))
 
-# COMMAND ----------
+# adding ingestion date using function
 
 results_with_ingestion_date_df = add_ingestion_date(results_with_columns_df)
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Drop the unwanted column
 
-# COMMAND ----------
-
 from pyspark.sql.functions import col
 
-# COMMAND ----------
-
 results_final_df = results_with_ingestion_date_df.drop(col("statusId"))
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC De-dupe the dataframe
 
-# COMMAND ----------
-
 results_deduped_df = results_final_df.dropDuplicates(['race_id', 'driver_id'])
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 4 - Write to output to processed container in parquet format
+results_final_df.write.mode("overwrite").partitionBy('race_id').parquet("/mnt/formula1dl/processed/results")
 
-# COMMAND ----------
+# check the data is writen properly
+display(spark.read.parquet("/mnt/formula1dl/processed/results"))
 
 # MAGIC %md
 # MAGIC Method 1

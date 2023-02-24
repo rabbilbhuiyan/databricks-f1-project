@@ -74,6 +74,11 @@ races_selected_df = races_with_ingestion_date_df.select(col('raceId').alias('rac
 # MAGIC ##### Step 4 - Write the output to processed container in parquet format
 
 races_selected_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/races")
+
+# partioning the race data by race_year
+#races_selected_df.write.mode("overwrite").partitionBy('race_year').parquet("/mnt/formula1dl/processed/races")
+
+
 #races_selected_df.write.mode("overwrite").partitionBy('race_year').format("delta").saveAsTable("f1_processed.races")
 
 # COMMAND ----------

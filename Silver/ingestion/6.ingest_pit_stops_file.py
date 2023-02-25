@@ -2,25 +2,20 @@
 # MAGIC %md
 # MAGIC ### Ingest pit_stops.json file
 
-# COMMAND ----------
-
+# parametrize with data source name and getting the value using widgets
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
-
-dbutils.widgets.text("p_file_date", "2021-03-28")
+# parameterize with file date and getting the value using widgets
+dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader API
@@ -38,27 +33,24 @@ pit_stops_schema = StructType(fields=[StructField("raceId", IntegerType(), False
                                      ])
 
 # reading the data into dataframe
-
 pit_stops_df = spark.read \
 .schema(pit_stops_schema) \
 .option("multiLine", True) \
 .json(f"{raw_folder_path}/{v_file_date}/pit_stops.json")
 
-# display the dataframe
+# printing the data
 display(pit_stops_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
-# Rename driverId and raceId
-# Add ingestion_date with current timestamp
 
-# Adding ingestion date using function
 
+# revoking the functions for ingestion date
 pit_stops_with_ingestion_date_df = add_ingestion_date(pit_stops_df)
-
 
 from pyspark.sql.functions import lit
 
+# rename and adding ngestion_date with current timestamp
 final_df = pit_stops_with_ingestion_date_df.withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
 .withColumn("ingestion_date", current_timestamp()) \
@@ -68,26 +60,22 @@ final_df = pit_stops_with_ingestion_date_df.withColumnRenamed("driverId", "drive
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Write to output to processed container in parquet format
-final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/pit_stops")
+final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/pit_stops")
 
 # check the output is writen properly
 display(spark.read.parquet("/mnt/formula1dl/processed/pit_stops"))
 
 #overwrite_partition(final_df, 'f1_processed', 'pit_stops', 'race_id')
 
-# COMMAND ----------
 
 merge_condition = "tgt.race_id = src.race_id AND tgt.driver_id = src.driver_id AND tgt.stop = src.stop AND tgt.race_id = src.race_id"
 merge_delta_data(final_df, 'f1_processed', 'pit_stops', processed_folder_path, merge_condition, 'race_id')
 
-# COMMAND ----------
-
+# add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")
 
-# COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.pit_stops;
 
-# COMMAND ----------
 

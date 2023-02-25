@@ -2,25 +2,20 @@
 # MAGIC %md
 # MAGIC ### Ingest qualifying json files
 
-# COMMAND ----------
-
+## parametrize with data source name and getting the value using widgets
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
-
+# parameterize with file date and getting the value using widgets
 dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader API
@@ -28,7 +23,6 @@ v_file_date = dbutils.widgets.get("p_file_date")
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType
 
 # specifiy schema
-
 qualifying_schema = StructType(fields=[StructField("qualifyId", IntegerType(), False),
                                       StructField("raceId", IntegerType(), True),
                                       StructField("driverId", IntegerType(), True),
@@ -46,18 +40,18 @@ qualifying_df = spark.read \
 .option("multiLine", True) \
 .json(f"{raw_folder_path}/{v_file_date}/qualifying")
 
-# showing the data
+# printing the data
 display(qualifying_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
-# MAGIC 1. Rename qualifyingId, driverId, constructorId and raceId
-# MAGIC 1. Add ingestion_date with current timestamp
 
+# invoking the function for ingestion date
 qualifying_with_ingestion_date_df = add_ingestion_date(qualifying_df)
 
 from pyspark.sql.functions import lit
 
+# renameing fields and adding new columns
 final_df = qualifying_with_ingestion_date_df.withColumnRenamed("qualifyId", "qualify_id") \
 .withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
@@ -68,23 +62,19 @@ final_df = qualifying_with_ingestion_date_df.withColumnRenamed("qualifyId", "qua
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Write to output to processed container in parquet format
-final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/qualifying")
+final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/qualifying")
 
 # check the output is writen properly
 display(spark.read.parquet("/mnt/formula1dl/processed/qualifying"))
 
-# COMMAND ----------
 
 #overwrite_partition(final_df, 'f1_processed', 'qualifying', 'race_id')
-
-# COMMAND ----------
 
 merge_condition = "tgt.qualify_id = src.qualify_id AND tgt.race_id = src.race_id"
 merge_delta_data(final_df, 'f1_processed', 'qualifying', processed_folder_path, merge_condition, 'race_id')
 
-# COMMAND ----------
-
+# add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")
 
-# COMMAND ----------
+
 

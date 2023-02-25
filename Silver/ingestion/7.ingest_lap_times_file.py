@@ -2,24 +2,19 @@
 # MAGIC %md
 # MAGIC ### Ingest lap_times folder
 
-# COMMAND ----------
-
+## parametrize with data source name and getting the value using widgets
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
-
+# parameterize with file date and getting the value using widgets
 dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
-
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
 
 # MAGIC %md
@@ -41,18 +36,18 @@ lap_times_df = spark.read \
 .schema(lap_times_schema) \
 .csv(f"{raw_folder_path}/{v_file_date}/lap_times")
 
-# displaying the data
+# printing data
 display(lap_times_df)
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Rename columns and add new columns
-# MAGIC 1. Rename driverId and raceId
-# MAGIC 1. Add ingestion_date with current timestamp
 
+# revoking the functions for adding ingestin date
 lap_times_with_ingestion_date_df = add_ingestion_date(lap_times_df)
 
 from pyspark.sql.functions import lit
 
+# renaming columns and adding new columns
 final_df = lap_times_with_ingestion_date_df.withColumnRenamed("driverId", "driver_id") \
 .withColumnRenamed("raceId", "race_id") \
 .withColumn("ingestion_date", current_timestamp()) \
@@ -62,7 +57,7 @@ final_df = lap_times_with_ingestion_date_df.withColumnRenamed("driverId", "drive
 
 # MAGIC %md
 # MAGIC ##### Step 3 - Write to output to processed container in parquet format
-final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/lap_times")
+final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/lap_times")
 
 # check the output is writen properly
 display(spark.read.parquet("/mnt/formula1dl/processed/lap_times"))
@@ -70,11 +65,9 @@ display(spark.read.parquet("/mnt/formula1dl/processed/lap_times"))
 
 #overwrite_partition(final_df, 'f1_processed', 'lap_times', 'race_id')
 
-# COMMAND ----------
 
 merge_condition = "tgt.race_id = src.race_id AND tgt.driver_id = src.driver_id AND tgt.lap = src.lap AND tgt.race_id = src.race_id"
 merge_delta_data(final_df, 'f1_processed', 'lap_times', processed_folder_path, merge_condition, 'race_id')
 
-# COMMAND ----------
-
+# add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")

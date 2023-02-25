@@ -1,23 +1,23 @@
 
 # MAGIC ### Ingest circuits.csv file
 
-# COMMAND ----------
+# parametrize with data source name and getting the value
 
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
+# parameterize with file date and getting the value
 
 dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
 
-# MAGIC %run "../includes/configuration"
+MAGIC %run "../set-up/configuration"
 
-# COMMAND ----------
+# invoke notebook with function
 
-# MAGIC %run "../includes/common_functions"
+MAGIC %run "../functions/common_functions"
 
 # COMMAND ----------
 
@@ -95,7 +95,7 @@ display(circuits_final_df)
 # MAGIC ##### Step 5 - Write data to datalake as parquet file
 
 # wirte data using DataFrameWriter api
-circuits_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/circuits")
+circuits_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/circuits")
 
 # circuits_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.circuits")
 
@@ -103,15 +103,15 @@ circuits_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/cir
 # %fs
 # ls /mnt/formula1dl/processed/circuits
 
-# validation of saved data by reading the data 
-df=spark.read.parquet("/mnt/formula1dl/processed/circuits")
-display(df)
+# check whether the output is writen properly 
+display(spark.read.parquet("/mnt/formula1dl/processed/circuits"))
+
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.circuits;
 
-# COMMAND ----------
+# add a exit command for exit status -to check the notebook workflow is succeded (in case of running ingest_all_files)
 
 dbutils.notebook.exit("Success")

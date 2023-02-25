@@ -58,11 +58,14 @@ final_df = race_results_df.select("race_id", "race_year", "race_name", "race_dat
 # write the data into presentation layers
 final_df.write.mode("overwrite").parquet(f"{presentation_folder_path}/race_results")
 
- 
+# write the data in the database (f1_presentation) as saveAsTable method
+final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.race_results")
+
+
 #merge_condition = "tgt.driver_name = src.driver_name AND tgt.race_id = src.race_id"
 #merge_delta_data(final_df, 'f1_presentation', 'race_results', presentation_folder_path, merge_condition, 'race_id')
 
-
+# query the table
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_presentation.race_results;
 

@@ -48,15 +48,15 @@ final_df = constructor_standings_df.withColumn("rank", rank().over(constructor_r
 # write the data into presentation layers
 final_df.write.mode("overwrite").parquet(f"{presentation_folder_path}/constructor_standings")
 
+# write the data in the database (f1_presentation) as saveAsTable method
+final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.constructor_standings")
+
 #merge_condition = "tgt.team = src.team AND tgt.race_year = src.race_year"
 #merge_delta_data(final_df, 'f1_presentation', 'constructor_standings', presentation_folder_path, merge_condition, 'race_year')
 
-# COMMAND ----------
-
+# query the table
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_presentation.constructor_standings WHERE race_year = 2021;
-
-# COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT race_year, COUNT(1)

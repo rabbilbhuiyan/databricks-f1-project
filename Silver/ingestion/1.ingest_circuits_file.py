@@ -101,5 +101,4 @@ display(spark.read.parquet("/mnt/formula1dl/processed/circuits"))
 # MAGIC SELECT * FROM f1_processed.circuits;
 
 # add a exit command for exit status(in case of running all files together)
-
 dbutils.notebook.exit("Success")

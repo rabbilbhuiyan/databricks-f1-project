@@ -2,41 +2,33 @@
 # MAGIC %md
 # MAGIC ##### Produce constructor standings
 
-# COMMAND ----------
-
+# parameterize with file date and getting the value using widgets
 dbutils.widgets.text("p_file_date", "2021-03-28")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC Find race years for which the data is to be reprocessed
 
-# COMMAND ----------
-
-race_results_df = spark.read.format("delta").load(f"{presentation_folder_path}/race_results") \
+race_results_df = spark.read.format("parquet").load(f"{presentation_folder_path}/race_results") \
 .filter(f"file_date = '{v_file_date}'") 
 
-# COMMAND ----------
 
 race_year_list = df_column_to_list(race_results_df, 'race_year')
 
-# COMMAND ----------
 
 from pyspark.sql.functions import col
 
 race_results_df = spark.read.format("delta").load(f"{presentation_folder_path}/race_results") \
 .filter(col("race_year").isin(race_year_list))
 
-# COMMAND ----------
+# creating constructor standing
 
 from pyspark.sql.functions import sum, when, count, col
 
@@ -45,7 +37,7 @@ constructor_standings_df = race_results_df \
 .agg(sum("points").alias("total_points"),
      count(when(col("position") == 1, True)).alias("wins"))
 
-# COMMAND ----------
+# creating constructor ranking
 
 from pyspark.sql.window import Window
 from pyspark.sql.functions import desc, rank, asc
@@ -53,10 +45,11 @@ from pyspark.sql.functions import desc, rank, asc
 constructor_rank_spec = Window.partitionBy("race_year").orderBy(desc("total_points"), desc("wins"))
 final_df = constructor_standings_df.withColumn("rank", rank().over(constructor_rank_spec))
 
-# COMMAND ----------
+# write the data into presentation layers
+final_df.write.mode("overwrite").parquet(f"{presentation_folder_path}/constructor_standings")
 
-merge_condition = "tgt.team = src.team AND tgt.race_year = src.race_year"
-merge_delta_data(final_df, 'f1_presentation', 'constructor_standings', presentation_folder_path, merge_condition, 'race_year')
+#merge_condition = "tgt.team = src.team AND tgt.race_year = src.race_year"
+#merge_delta_data(final_df, 'f1_presentation', 'constructor_standings', presentation_folder_path, merge_condition, 'race_year')
 
 # COMMAND ----------
 

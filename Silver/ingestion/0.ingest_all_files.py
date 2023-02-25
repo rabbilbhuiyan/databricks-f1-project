@@ -1,5 +1,6 @@
 # Databricks notebook source
-# Creating notebook workflow: execution of all the ingestion files together in production scenerio
+# MAGIC %md
+# MAGIC ### Creating notebook workflow: execution of all the ingestion files together in production scenerio
 
 # circuits file
 v_result = dbutils.notebook.run("1.ingest_circuits_file", 0, {"p_data_source": "Ergast API", "p_file_date": "2021-04-18"})

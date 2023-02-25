@@ -1,25 +1,21 @@
+# Databricks notebook source
 # MAGIC %md
 # MAGIC ### Ingest races.csv file
 
-# COMMAND ----------
-
+# parametrize with data source name and getting the value using widgets
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
-
+# parameterize with file date and getting the value using widgets
 dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the CSV file using the spark dataframe reader API
@@ -44,8 +40,9 @@ races_df = spark.read \
 .schema(races_schema) \
 .csv(f"{raw_folder_path}/{v_file_date}/races.csv")
 
-# displaying the dataframe
+# printing the data
 display(races_df)
+
 
 # MAGIC %md
 # MAGIC ##### Step 2 - Add ingestion date and race_timestamp to the dataframe
@@ -58,7 +55,7 @@ races_with_timestamp_df = races_df.withColumn("race_timestamp", to_timestamp(con
 .withColumn("data_source", lit(v_data_source)) \
 .withColumn("file_date", lit(v_file_date))
 
-# calling the functions
+# revoking the user defined functions
 races_with_ingestion_date_df = add_ingestion_date(races_with_timestamp_df)
 
 
@@ -67,25 +64,21 @@ races_with_ingestion_date_df = add_ingestion_date(races_with_timestamp_df)
 
 # selecting the required columns
 races_selected_df = races_with_ingestion_date_df.select(col('raceId').alias('race_id'), col('year').alias('race_year'), 
-                                                   col('round'), col('circuitId').alias('circuit_id'),col('name'), col('ingestion_date'), col('race_timestamp'))
+                                                        col('round'), col('circuitId').alias('circuit_id'),col('name'), col('ingestion_date'), col('race_timestamp'))
 
 
 # MAGIC %md
 # MAGIC ##### Step 4 - Write the output to processed container in parquet format
+races_selected_df.write.mode("overwrite").parquet(f"{processed_folder_path}/races")
 
-races_selected_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/races")
-
-# partioning the race data by race_year
-#races_selected_df.write.mode("overwrite").partitionBy('race_year').parquet("/mnt/formula1dl/processed/races")
-
+# check whether the output is writen properly 
+display(spark.read.parquet("/mnt/formula1dl/processed/races"))
 
 #races_selected_df.write.mode("overwrite").partitionBy('race_year').format("delta").saveAsTable("f1_processed.races")
 
-# COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.races;
 
-# COMMAND ----------
-
+# add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")

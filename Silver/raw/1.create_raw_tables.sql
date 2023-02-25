@@ -22,7 +22,7 @@ url STRING
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/circuits.csv", header true)
 
-# Reading the circuit tables
+# query the table
 SELECT * FROM f1_raw.circuits;
 
 -- MAGIC %md
@@ -40,7 +40,7 @@ url STRING)
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/races.csv", header true)
 
-# reading the races tables
+# query the table
 SELECT * FROM f1_raw.races;
 
 -- MAGIC %md
@@ -63,7 +63,7 @@ url STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/constructors.json")
 
-# reading the data
+# query the table
 SELECT * FROM f1_raw.constructors;
 
 -- MAGIC %md
@@ -110,7 +110,7 @@ statusId STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/results.json")
 
-# reading the data
+# query the table
 SELECT * FROM f1_raw.results
 
 -- MAGIC %md
@@ -130,7 +130,7 @@ time STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/pit_stops.json", multiLine true)
 
-# reading data
+# query the table 
 SELECT * FROM f1_raw.pit_stops;
 
 -- MAGIC %md
@@ -153,7 +153,7 @@ milliseconds INT
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/lap_times")
 
-# reading records
+# query the table
 SELECT * FROM f1_raw.lap_times
 
 -- MAGIC %md
@@ -176,7 +176,7 @@ raceId INT)
 USING json
 OPTIONS (path "/mnt/formula1dl/raw/qualifying", multiLine true)
 
-# query the tables
+# query the table
 SELECT * FROM f1_raw.qualifying
 
 # describe the external table 

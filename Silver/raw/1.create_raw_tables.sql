@@ -1,17 +1,12 @@
 -- Databricks notebook source
 CREATE DATABASE IF NOT EXISTS f1_raw;
 
--- COMMAND ----------
-
 -- MAGIC %md
 -- MAGIC #### Create tables for CSV files
 
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create circuits table
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.circuits;
 CREATE TABLE IF NOT EXISTS f1_raw.circuits(circuitId INT,
@@ -27,16 +22,11 @@ url STRING
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/circuits.csv", header true)
 
--- COMMAND ----------
-
+# Reading the circuit tables
 SELECT * FROM f1_raw.circuits;
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create races table
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.races;
 CREATE TABLE IF NOT EXISTS f1_raw.races(raceId INT,
@@ -50,16 +40,11 @@ url STRING)
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/races.csv", header true)
 
--- COMMAND ----------
-
+# reading the races tables
 SELECT * FROM f1_raw.races;
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC #### Create tables for JSON files
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create constructors table
@@ -78,18 +63,13 @@ url STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/constructors.json")
 
--- COMMAND ----------
-
+# reading the data
 SELECT * FROM f1_raw.constructors;
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create drivers table
 -- MAGIC * Single Line JSON
 -- MAGIC * Complex structure
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.drivers;
 CREATE TABLE IF NOT EXISTS f1_raw.drivers(
@@ -104,13 +84,9 @@ url STRING)
 USING json
 OPTIONS (path "/mnt/formula1dl/raw/drivers.json")
 
--- COMMAND ----------
-
 -- MAGIC %md ##### Create results table
 -- MAGIC * Single Line JSON
 -- MAGIC * Simple structure
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.results;
 CREATE TABLE IF NOT EXISTS f1_raw.results(
@@ -134,18 +110,13 @@ statusId STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/results.json")
 
--- COMMAND ----------
-
+# reading the data
 SELECT * FROM f1_raw.results
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create pit stops table
 -- MAGIC * Multi Line JSON
 -- MAGIC * Simple structure
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.pit_stops;
 CREATE TABLE IF NOT EXISTS f1_raw.pit_stops(
@@ -159,23 +130,16 @@ time STRING)
 USING json
 OPTIONS(path "/mnt/formula1dl/raw/pit_stops.json", multiLine true)
 
--- COMMAND ----------
-
+# reading data
 SELECT * FROM f1_raw.pit_stops;
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC #### Create tables for list of files
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create Lap Times Table
 -- MAGIC * CSV file
 -- MAGIC * Multiple files
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.lap_times;
 CREATE TABLE IF NOT EXISTS f1_raw.lap_times(
@@ -189,19 +153,14 @@ milliseconds INT
 USING csv
 OPTIONS (path "/mnt/formula1dl/raw/lap_times")
 
--- COMMAND ----------
-
+# reading records
 SELECT * FROM f1_raw.lap_times
-
--- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ##### Create Qualifying Table
 -- MAGIC * JSON file
 -- MAGIC * MultiLine JSON
 -- MAGIC * Multiple files
-
--- COMMAND ----------
 
 DROP TABLE IF EXISTS f1_raw.qualifying;
 CREATE TABLE IF NOT EXISTS f1_raw.qualifying(
@@ -217,13 +176,11 @@ raceId INT)
 USING json
 OPTIONS (path "/mnt/formula1dl/raw/qualifying", multiLine true)
 
--- COMMAND ----------
-
+# query the tables
 SELECT * FROM f1_raw.qualifying
 
--- COMMAND ----------
-
+# describe the external table 
 DESC EXTENDED f1_raw.qualifying;
 
--- COMMAND ----------
+
 

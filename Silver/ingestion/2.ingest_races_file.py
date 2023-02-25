@@ -74,9 +74,10 @@ races_selected_df.write.mode("overwrite").parquet(f"{processed_folder_path}/race
 # check whether the output is writen properly 
 display(spark.read.parquet("/mnt/formula1dl/processed/races"))
 
-#races_selected_df.write.mode("overwrite").partitionBy('race_year').format("delta").saveAsTable("f1_processed.races")
+# write the data in the database (f1_processed) as saveAsTable method
+races_selected_df.write.mode("overwrite").partitionBy('race_year').format("parquet").saveAsTable("f1_processed.races")
 
-
+# query the table
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.races;
 

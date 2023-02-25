@@ -55,9 +55,10 @@ constructor_final_df.write.mode("overwrite")..parquet(f"{processed_folder_path}/
 # check whether the output is writen properly 
 display(spark.read.parquet("/mnt/formula1dl/processed/constructors"))
 
-#constructor_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.constructors")
+# write the data in the database (f1_processed) as saveAsTable method
+constructor_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.constructors")
 
-
+# query the table
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.constructors;
 

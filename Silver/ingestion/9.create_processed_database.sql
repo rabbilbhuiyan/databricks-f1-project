@@ -2,9 +2,7 @@
 CREATE DATABASE IF NOT EXISTS f1_processed
 LOCATION "/mnt/formula1dl/processed"
 
--- COMMAND ----------
-
+# describe the database
 DESC DATABASE f1_processed;
 
--- COMMAND ----------
 

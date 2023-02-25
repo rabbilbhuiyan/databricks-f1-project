@@ -87,7 +87,8 @@ circuits_final_df = add_ingestion_date(circuits_renamed_df)
 # wirte data using DataFrameWriter api
 circuits_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/circuits")
 
-# circuits_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.circuits")
+# write the data in the database (f1_processed) as saveAsTable method
+circuits_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.circuits")
 
 # check the data is writen by listing the file system
 # %fs
@@ -96,7 +97,7 @@ circuits_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/circ
 # check whether the output is writen properly 
 display(spark.read.parquet("/mnt/formula1dl/processed/circuits"))
 
-
+# query the table
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.circuits;
 

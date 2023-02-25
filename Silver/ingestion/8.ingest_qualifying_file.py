@@ -70,8 +70,11 @@ display(spark.read.parquet("/mnt/formula1dl/processed/qualifying"))
 
 #overwrite_partition(final_df, 'f1_processed', 'qualifying', 'race_id')
 
-merge_condition = "tgt.qualify_id = src.qualify_id AND tgt.race_id = src.race_id"
-merge_delta_data(final_df, 'f1_processed', 'qualifying', processed_folder_path, merge_condition, 'race_id')
+# write the data in the database (f1_processed) as saveAsTable method
+final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.qualifying")
+
+#merge_condition = "tgt.qualify_id = src.qualify_id AND tgt.race_id = src.race_id"
+#merge_delta_data(final_df, 'f1_processed', 'qualifying', processed_folder_path, merge_condition, 'race_id')
 
 # add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")

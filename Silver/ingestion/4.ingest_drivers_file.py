@@ -1,25 +1,21 @@
+# Databricks notebook source
 # MAGIC %md
 # MAGIC ### Ingest drivers.json file
 
-# COMMAND ----------
-
+# parametrize with data source name and getting the value using widgets
 dbutils.widgets.text("p_data_source", "")
 v_data_source = dbutils.widgets.get("p_data_source")
 
-# COMMAND ----------
-
+# parameterize with file date and getting the value using widgets
 dbutils.widgets.text("p_file_date", "2021-03-21")
 v_file_date = dbutils.widgets.get("p_file_date")
 
-# COMMAND ----------
+# invoke notebook with configuration parameter to avoid hardcoding of path folder
+MAGIC %run "../set-up/configuration"
 
-# MAGIC %run "../includes/configuration"
+# invoke notebook with function
+MAGIC %run "../functions/common_functions"
 
-# COMMAND ----------
-
-# MAGIC %run "../includes/common_functions"
-
-# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### Step 1 - Read the JSON file using the spark dataframe reader API
@@ -48,7 +44,7 @@ drivers_df = spark.read \
 .schema(drivers_schema) \
 .json(f"{raw_folder_path}/{v_file_date}/drivers.json")
 
-# displaying the dataframe
+# printing data
 display(drivers_df)
 
 # MAGIC %md
@@ -60,7 +56,7 @@ display(drivers_df)
 
 from pyspark.sql.functions import col, concat, lit
 
-# adding ingestion date using user defined function
+# revoking the user defined function
 drivers_with_ingestion_date_df = add_ingestion_date(drivers_df)
 
 drivers_with_columns_df = drivers_with_ingestion_date_df.withColumnRenamed("driverId", "driver_id") \
@@ -77,15 +73,16 @@ drivers_final_df = drivers_with_columns_df.drop(col("url"))
 
 # MAGIC %md
 # MAGIC ##### Step 4 - Write to output to processed container in parquet format
-drivers_final_df.write.mode("overwrite").parquet("/mnt/formula1dl/processed/drivers")
+drivers_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/drivers")
+
+# check whether the output is writen properly 
+display(spark.read.parquet("/mnt/formula1dl/processed/drivers"))
 
 #drivers_final_df.write.mode("overwrite").format("delta").saveAsTable("f1_processed.drivers")
 
-# COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT * FROM f1_processed.drivers
 
-# COMMAND ----------
-
+# add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")

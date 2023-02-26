@@ -50,11 +50,6 @@ The data from Ergest Developer API is imported into raw ADLS container on Azure 
 - Ability to re-run failed pipelines.
 - Ability to set-up alerts on failures.
 
-### Other Non-Functional Requirements:
-- Ability to delete individual records.
-- Other Non-Functional Requirements.
-- Ability to see history and time travel.
-- Ability to roll back to a previous version.
 
 ## Project Structure
 ### Bronze Layer
@@ -64,8 +59,8 @@ The data from Ergest Developer API is imported into raw ADLS container on Azure 
 3. ingestion - contains notebooks to ingest all the data files from raw layer to ingested layer. Handles the incremental data for files results, pitstopes, laptimes and qualifying.
 4. trans - contains notebooks to transform the data from ingested layer to presentation layer. Notebook perfroms transformations to setup for analysis.
 5. raw - contains SQL file to create ingested tables using Spark SQL.
-### Gold Layer
 6. functions - includes notebooks containing helper functions used in transformations.
+### Gold Layer
 7. analysis - contains SQL files for finding the dominant drivers and teams and to prepare the results for visualization.
 8. utils - contains SQL file to drop all databases for incremental load.
 9. images - contains visuals of the analysis

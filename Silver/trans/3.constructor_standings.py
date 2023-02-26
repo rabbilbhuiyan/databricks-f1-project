@@ -51,8 +51,6 @@ final_df.write.mode("overwrite").parquet(f"{presentation_folder_path}/constructo
 # write the data in the database (f1_presentation) as saveAsTable method
 final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.constructor_standings")
 
-#merge_condition = "tgt.team = src.team AND tgt.race_year = src.race_year"
-#merge_delta_data(final_df, 'f1_presentation', 'constructor_standings', presentation_folder_path, merge_condition, 'race_year')
 
 # query the table
 # MAGIC %sql

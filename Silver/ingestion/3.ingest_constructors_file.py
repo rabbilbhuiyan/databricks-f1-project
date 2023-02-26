@@ -50,7 +50,7 @@ constructor_final_df = add_ingestion_date(constructor_renamed_df)
 
 # MAGIC %md
 # MAGIC ##### Step 4 Write output to parquet file
-constructor_final_df.write.mode("overwrite")..parquet(f"{processed_folder_path}/constructors")
+constructor_final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/constructors")
 
 # check whether the output is writen properly 
 display(spark.read.parquet("/mnt/formula1dl/processed/constructors"))

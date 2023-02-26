@@ -33,7 +33,7 @@ from pyspark.sql.functions import sum, when, count, col
 driver_standings_df = race_results_df \
 .groupBy("race_year", "driver_name", "driver_nationality") \
 .agg(sum("points").alias("total_points"),
-     count(when(col("position") == 1, True)).alias("wins"))
+count(when(col("position") == 1, True)).alias("wins"))
 
 # creating driver rank
 
@@ -49,9 +49,6 @@ final_df.write.mode("overwrite").parquet(f"{presentation_folder_path}/driver_sta
 # write the data in the database (f1_presentation) as saveAsTable method
 final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_presentation.driver_standings")
 
-
-#merge_condition = "tgt.driver_name = src.driver_name AND tgt.race_year = src.race_year"
-#merge_delta_data(final_df, 'f1_presentation', 'driver_standings', presentation_folder_path, merge_condition, 'race_year')
 
 # query the table
 # MAGIC %sql

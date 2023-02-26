@@ -65,14 +65,10 @@ final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/pit_stops")
 # check the output is writen properly
 display(spark.read.parquet("/mnt/formula1dl/processed/pit_stops"))
 
-#overwrite_partition(final_df, 'f1_processed', 'pit_stops', 'race_id')
 
 # write the data in the database (f1_processed) as saveAsTable method
 final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.pit_stops")
 
-
-#merge_condition = "tgt.race_id = src.race_id AND tgt.driver_id = src.driver_id AND tgt.stop = src.stop AND tgt.race_id = src.race_id"
-#merge_delta_data(final_df, 'f1_processed', 'pit_stops', processed_folder_path, merge_condition, 'race_id')
 
 # add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")

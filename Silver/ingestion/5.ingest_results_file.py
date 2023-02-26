@@ -85,35 +85,13 @@ results_final_df.write.mode("overwrite").partitionBy('race_id').parquet(f"{proce
 # check the data is writen properly
 display(spark.read.parquet("/mnt/formula1dl/processed/results"))
 
-# MAGIC %md
-# MAGIC Method 1
-
-
-# for race_id_list in results_final_df.select("race_id").distinct().collect():
-#   if (spark._jsparkSession.catalog().tableExists("f1_processed.results")):
-#     spark.sql(f"ALTER TABLE f1_processed.results DROP IF EXISTS PARTITION (race_id = {race_id_list.race_id})")
-
 
 # write the data in the database (f1_processed) as saveAsTable method
 results_final_df.write.mode("append").partitionBy('race_id').format("parquet").saveAsTable("f1_processed.results")
 
 
-
-# MAGIC %md
-# MAGIC Method 2
-
-
-
-# overwrite_partition(results_final_df, 'f1_processed', 'results', 'race_id')
-
-
-
-#merge_condition = "tgt.result_id = src.result_id AND tgt.race_id = src.race_id"
-#merge_delta_data(results_deduped_df, 'f1_processed', 'results', processed_folder_path, merge_condition, 'race_id')
-
 # add a exit command for exit status(in case of running all files together)
 dbutils.notebook.exit("Success")
-
 
 
 # MAGIC %sql
